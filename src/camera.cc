@@ -34,9 +34,6 @@ void Camera::Render(const Hittable& world) {
 }
 
 void Camera::Initialize() {
-  const int real_height = static_cast<int>(image_width_ / aspect_ratio_);
-  image_height_ = (real_height < 1) ? 1 : real_height;
-
   center_ = Point3{};
 
   const Float focal_length = 1.0;

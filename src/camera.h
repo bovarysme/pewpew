@@ -9,8 +9,8 @@
 
 class Camera {
  public:
-  Camera(Float aspect_ratio, int image_width)
-      : aspect_ratio_(aspect_ratio), image_width_(image_width) {}
+  Camera(int image_width, int image_height)
+      : image_width_(image_width), image_height_(image_height) {}
 
   void Render(const Hittable& world);
 
@@ -18,7 +18,6 @@ class Camera {
   void Initialize();
   Color RayColor(const Ray& ray, const Hittable& world) const;
 
-  Float aspect_ratio_;
   int image_width_;
   int image_height_;
   Point3 center_;
