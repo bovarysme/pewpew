@@ -8,6 +8,7 @@
 #include "float.h"
 #include "hittable.h"
 #include "ray.h"
+#include "utils.h"
 #include "vec3.h"
 
 void Camera::Render(const Hittable& world) {
@@ -20,13 +21,13 @@ void Camera::Render(const Hittable& world) {
               << std::flush;
 
     for (int i = 0; i < image_width_; i++) {
-      const Vec3 pixel_center = upper_left_pixel_location_ +
-                                (i * pixel_delta_u_) + (j * pixel_delta_v_);
-      const Vec3 ray_direction = pixel_center - center_;
-      Ray ray{center_, ray_direction};
+      Color pixel_color{};
+      for (int sample = 0; sample < samples_per_pixel_; sample++) {
+        const Ray ray = GetRay(i, j);
+        pixel_color += RayColor(ray, world);
+      }
 
-      Color pixel_color = RayColor(ray, world);
-      WriteColor(std::cout, pixel_color);
+      WriteColor(std::cout, pixel_samples_scale_ * pixel_color);
     }
   }
 
@@ -34,6 +35,8 @@ void Camera::Render(const Hittable& world) {
 }
 
 void Camera::Initialize() {
+  pixel_samples_scale_ = 1.0 / samples_per_pixel_;
+
   center_ = Point3{};
 
   const Float focal_length = 1.0;
@@ -51,6 +54,17 @@ void Camera::Initialize() {
       center_ - Vec3(0, 0, focal_length) - viewport_u / 2 - viewport_v / 2;
   upper_left_pixel_location_ =
       viewport_upper_left + 0.5 * (pixel_delta_u_ + pixel_delta_v_);
+}
+
+Ray Camera::GetRay(int i, int j) const {
+  const Vec3 offset{static_cast<Float>(RandomDouble() - 0.5),
+                    static_cast<Float>(RandomDouble() - 0.5), 0};
+  const Vec3 pixel_sample = upper_left_pixel_location_ +
+                            ((i + offset.x()) * pixel_delta_u_) +
+                            ((j + offset.y()) * pixel_delta_v_);
+
+  const Vec3 ray_direction = pixel_sample - center_;
+  return Ray{center_, ray_direction};
 }
 
 Color Camera::RayColor(const Ray& ray, const Hittable& world) const {

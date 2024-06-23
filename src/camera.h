@@ -9,17 +9,22 @@
 
 class Camera {
  public:
-  Camera(int image_width, int image_height)
-      : image_width_(image_width), image_height_(image_height) {}
+  Camera(int image_width, int image_height, int samples_per_pixel)
+      : image_width_(image_width),
+        image_height_(image_height),
+        samples_per_pixel_(samples_per_pixel) {}
 
   void Render(const Hittable& world);
 
  private:
   void Initialize();
+  Ray GetRay(int i, int j) const;
   Color RayColor(const Ray& ray, const Hittable& world) const;
 
   int image_width_;
   int image_height_;
+  int samples_per_pixel_;
+  Float pixel_samples_scale_;
   Point3 center_;
   Vec3 pixel_delta_u_;
   Vec3 pixel_delta_v_;
