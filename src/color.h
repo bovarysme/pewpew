@@ -2,6 +2,7 @@
 #define PEWPEW_COLOR_H_
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 
 #include "float.h"
@@ -9,10 +10,18 @@
 
 using Color = Vec3;
 
+inline Float LinearToGamma(double linear_component) {
+  return linear_component > 0 ? std::sqrt(linear_component) : 0;
+}
+
 inline void WriteColor(std::ostream& out, const Color& pixel_color) {
-  const Float r = pixel_color.x();
-  const Float g = pixel_color.y();
-  const Float b = pixel_color.z();
+  Float r = pixel_color.x();
+  Float g = pixel_color.y();
+  Float b = pixel_color.z();
+
+  r = LinearToGamma(r);
+  g = LinearToGamma(g);
+  b = LinearToGamma(b);
 
   const Float min = 0.0;
   const Float max = 0.999;

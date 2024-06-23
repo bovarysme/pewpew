@@ -12,6 +12,6 @@ int main() {
   world.Add(std::make_shared<Sphere>(Point3{-0.5, 0.5, -1}, 0.25));
   world.Add(std::make_shared<Sphere>(Point3{0, -100.5, -1}, 100));
 
-  Camera camera{640, 360, 128};
+  Camera camera{640, 360, 128, 64};
   camera.Render(world);
 }

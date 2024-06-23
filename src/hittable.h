@@ -17,6 +17,7 @@ class HitRecord {
   }
 
   Float t() { return t_; }
+  Point3 p() { return p_; }
   Vec3 normal() { return normal_; }
 
  private:

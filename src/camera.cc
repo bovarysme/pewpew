@@ -24,7 +24,7 @@ void Camera::Render(const Hittable& world) {
       Color pixel_color{};
       for (int sample = 0; sample < samples_per_pixel_; sample++) {
         const Ray ray = GetRay(i, j);
-        pixel_color += RayColor(ray, world);
+        pixel_color += RayColor(ray, max_depth_, world);
       }
 
       WriteColor(std::cout, pixel_samples_scale_ * pixel_color);
@@ -35,6 +35,8 @@ void Camera::Render(const Hittable& world) {
 }
 
 void Camera::Initialize() {
+  uses_lambertian_distribution_ = true;
+
   pixel_samples_scale_ = 1.0 / samples_per_pixel_;
 
   center_ = Point3{};
@@ -57,8 +59,8 @@ void Camera::Initialize() {
 }
 
 Ray Camera::GetRay(int i, int j) const {
-  const Vec3 offset{static_cast<Float>(RandomDouble() - 0.5),
-                    static_cast<Float>(RandomDouble() - 0.5), 0};
+  const Vec3 offset{static_cast<Float>(RandomFloat() - 0.5),
+                    static_cast<Float>(RandomFloat() - 0.5), 0};
   const Vec3 pixel_sample = upper_left_pixel_location_ +
                             ((i + offset.x()) * pixel_delta_u_) +
                             ((j + offset.y()) * pixel_delta_v_);
@@ -67,16 +69,24 @@ Ray Camera::GetRay(int i, int j) const {
   return Ray{center_, ray_direction};
 }
 
-Color Camera::RayColor(const Ray& ray, const Hittable& world) const {
-  const Color white{1.0, 1.0, 1.0};
-  const Color blue{0.5, 0.7, 1.0};
+Color Camera::RayColor(const Ray& ray, int depth, const Hittable& world) const {
+  if (depth <= 0) {
+    const Color black{0.0, 0.0, 0.0};
+    return black;
+  }
 
-  const Float min = 0;
+  const Float min = 0.001;
   const Float max = std::numeric_limits<Float>::infinity();
   std::optional<HitRecord> record = world.Hit(ray, min, max);
   if (record.has_value()) {
-    return 0.5 * (record->normal() + white);
+    const Vec3 direction = uses_lambertian_distribution_
+                               ? record->normal() + RandomUnitVector()
+                               : RandomOnHemisphere(record->normal());
+    return 0.5 * RayColor(Ray{record->p(), direction}, depth - 1, world);
   }
+
+  const Color white{1.0, 1.0, 1.0};
+  const Color blue{0.5, 0.7, 1.0};
 
   const Vec3 unit_direction = UnitVector(ray.direction());
   const Float a = 0.5 * (unit_direction.y() + 1.0);
