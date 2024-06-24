@@ -10,4 +10,5 @@ add_executable(pewpew
                src/camera.cc
                src/hittable_list.cc
                src/lambertian.cc
+               src/metal.cc
                src/sphere.cc)

@@ -111,9 +111,8 @@ inline Vec3 RandomInUnitSphere() {
 
 inline Vec3 RandomUnitVector() { return UnitVector(RandomInUnitSphere()); }
 
-inline Vec3 RandomOnHemisphere(const Vec3& normal) {
-  const Vec3 on_unit_sphere = RandomUnitVector();
-  return Dot(on_unit_sphere, normal) > 0.0 ? on_unit_sphere : -on_unit_sphere;
+inline Vec3 Reflect(const Vec3& direction, const Vec3& normal) {
+  return direction - 2 * Dot(direction, normal) * normal;
 }
 
 #endif  // PEWPEW_VEC3_H_
