@@ -12,7 +12,7 @@
 
 class Sphere : public Hittable {
  public:
-  Sphere(const Point3& center, Float radius, std::shared_ptr<Material> material)
+  Sphere(const Point3& center, Float radius, Material* material)
       : center_(center), radius_(radius), material_(material) {}
 
   std::optional<HitRecord> Hit(const Ray& ray, Float tmin,
@@ -21,7 +21,7 @@ class Sphere : public Hittable {
  private:
   Point3 center_;
   Float radius_;
-  std::shared_ptr<Material> material_;
+  Material* material_;
 };
 
 #endif  // PEWPEW_SPHERE_H_

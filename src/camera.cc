@@ -82,7 +82,7 @@ Color Camera::RayColor(const Ray& ray, int depth, const Hittable& world) const {
       return black;
     }
 
-    std::shared_ptr<Material> material = hit_record->material();
+    Material* material = hit_record->material();
     std::optional<ScatterRecord> scatter_record =
         material->Scatter(ray, hit_record.value());
     if (!scatter_record.has_value()) {
