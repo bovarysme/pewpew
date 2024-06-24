@@ -27,6 +27,14 @@ class Vec3 {
     return *this;
   }
 
+  Vec3& operator*=(const Vec3& value) {
+    e_[0] *= value.x();
+    e_[1] *= value.y();
+    e_[2] *= value.z();
+
+    return *this;
+  }
+
   Vec3& operator*=(double value) {
     e_[0] *= value;
     e_[1] *= value;
@@ -58,6 +66,12 @@ class Vec3 {
 
   Float length() const { return std::sqrt(length_squared()); }
 
+  bool near_zero() const {
+    const Float epsilon = 1e-8;
+    return (std::fabs(e_[0]) < epsilon) && (std::fabs(e_[1]) < epsilon) &&
+           (std::fabs(e_[2]) < epsilon);
+  }
+
  private:
   Float e_[3];
 };
@@ -71,6 +85,8 @@ inline Vec3 operator-(const Vec3& value) {
 inline Vec3 operator+(Vec3 lhs, const Vec3& rhs) { return lhs += rhs; }
 
 inline Vec3 operator-(Vec3 lhs, const Vec3& rhs) { return lhs -= rhs; }
+
+inline Vec3 operator*(Vec3 lhs, const Vec3& rhs) { return lhs *= rhs; }
 
 inline Vec3 operator*(Vec3 lhs, double rhs) { return lhs *= rhs; }
 

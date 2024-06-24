@@ -27,7 +27,6 @@ class Camera {
   int image_height_;
   int samples_per_pixel_;
   int max_depth_;
-  bool uses_lambertian_distribution_;
   Float pixel_samples_scale_;
   Point3 center_;
   Vec3 pixel_delta_u_;

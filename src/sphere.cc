@@ -32,5 +32,5 @@ std::optional<HitRecord> Sphere::Hit(const Ray& ray, Float tmin,
 
   const Point3 intersection = ray.at(root);
   const Vec3 outward_normal = (intersection - center_) / radius_;
-  return HitRecord{root, intersection, outward_normal, ray};
+  return HitRecord{root, intersection, material_, outward_normal, ray};
 }

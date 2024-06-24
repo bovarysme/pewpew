@@ -7,6 +7,7 @@
 #include "color.h"
 #include "float.h"
 #include "hittable.h"
+#include "material.h"
 #include "ray.h"
 #include "utils.h"
 #include "vec3.h"
@@ -35,8 +36,6 @@ void Camera::Render(const Hittable& world) {
 }
 
 void Camera::Initialize() {
-  uses_lambertian_distribution_ = true;
-
   pixel_samples_scale_ = 1.0 / samples_per_pixel_;
 
   center_ = Point3{};
@@ -70,19 +69,28 @@ Ray Camera::GetRay(int i, int j) const {
 }
 
 Color Camera::RayColor(const Ray& ray, int depth, const Hittable& world) const {
+  const Color black{0.0, 0.0, 0.0};
   if (depth <= 0) {
-    const Color black{0.0, 0.0, 0.0};
     return black;
   }
 
   const Float min = 0.001;
   const Float max = std::numeric_limits<Float>::infinity();
-  std::optional<HitRecord> record = world.Hit(ray, min, max);
-  if (record.has_value()) {
-    const Vec3 direction = uses_lambertian_distribution_
-                               ? record->normal() + RandomUnitVector()
-                               : RandomOnHemisphere(record->normal());
-    return 0.5 * RayColor(Ray{record->p(), direction}, depth - 1, world);
+  std::optional<HitRecord> hit_record = world.Hit(ray, min, max);
+  if (hit_record.has_value()) {
+    if (hit_record->material() == nullptr) {
+      return black;
+    }
+
+    std::shared_ptr<Material> material = hit_record->material();
+    std::optional<ScatterRecord> scatter_record =
+        material->Scatter(ray, hit_record.value());
+    if (!scatter_record.has_value()) {
+      return black;
+    }
+
+    return scatter_record->attenuation() *
+           RayColor(scatter_record->scattered(), depth - 1, world);
   }
 
   const Color white{1.0, 1.0, 1.0};
