@@ -51,6 +51,10 @@ class Vec3 {
     return *this;
   }
 
+  static Vec3 Random() {
+    return Vec3{RandomFloat(), RandomFloat(), RandomFloat()};
+  }
+
   static Vec3 Random(double min, double max) {
     return Vec3{RandomFloat(min, max), RandomFloat(min, max),
                 RandomFloat(min, max)};
