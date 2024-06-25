@@ -38,6 +38,8 @@ int main() {
       .look_from = Point3{-2, 2, 1},
       .look_at = Point3{0, 0, -1},
       .view_up = Vec3{0, 1, 0},
+      .defocus_angle = 10.0,
+      .focus_distance = 3.4,
   };
 
   Camera camera{settings};

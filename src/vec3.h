@@ -106,6 +106,15 @@ inline Vec3 Cross(const Vec3& lhs, const Vec3& rhs) {
 
 inline Vec3 UnitVector(const Vec3& value) { return value / value.length(); }
 
+inline Vec3 RandomInUnitDisk() {
+  while (true) {
+    const Vec3 p{RandomFloat(-1, 1), RandomFloat(-1, 1), 0};
+    if (p.length_squared() < 1) {
+      return p;
+    }
+  }
+}
+
 inline Vec3 RandomInUnitSphere() {
   while (true) {
     const Vec3 p = Vec3::Random(-1, 1);

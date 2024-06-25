@@ -43,10 +43,9 @@ void Camera::Initialize() {
 
   center_ = settings_.look_from;
 
-  const Float focal_length = (settings_.look_from - settings_.look_at).length();
   const Float theta = DegreesToRadians(settings_.fov);
   const Float h = std::tan(theta / 2);
-  const Float viewport_height = 2.0 * h * focal_length;
+  const Float viewport_height = 2.0 * h * settings_.focus_distance;
   const Float viewport_width =
       viewport_height *
       (static_cast<Float>(settings_.image_width) / settings_.image_height);
@@ -61,10 +60,15 @@ void Camera::Initialize() {
   pixel_delta_u_ = viewport_u / settings_.image_width;
   pixel_delta_v_ = viewport_v / settings_.image_height;
 
-  const Vec3 viewport_upper_left =
-      center_ - (focal_length * w_) - viewport_u / 2 - viewport_v / 2;
+  const Vec3 viewport_upper_left = center_ - (settings_.focus_distance * w_) -
+                                   viewport_u / 2 - viewport_v / 2;
   upper_left_pixel_location_ =
       viewport_upper_left + 0.5 * (pixel_delta_u_ + pixel_delta_v_);
+
+  Float defocus_radius = settings_.focus_distance *
+                         tan(DegreesToRadians(settings_.defocus_angle / 2));
+  defocus_disk_u_ = u_ * defocus_radius;
+  defocus_disk_v_ = v_ * defocus_radius;
 }
 
 Ray Camera::GetRay(int i, int j) const {
@@ -74,8 +78,10 @@ Ray Camera::GetRay(int i, int j) const {
                             ((i + offset.x()) * pixel_delta_u_) +
                             ((j + offset.y()) * pixel_delta_v_);
 
-  const Vec3 ray_direction = pixel_sample - center_;
-  return Ray{center_, ray_direction};
+  const Point3 ray_origin =
+      (settings_.defocus_angle <= 0) ? center_ : SampleDefocusDisk();
+  const Vec3 ray_direction = pixel_sample - ray_origin;
+  return Ray{ray_origin, ray_direction};
 }
 
 Color Camera::RayColor(const Ray& ray, int depth, const Hittable& world) const {
@@ -109,4 +115,9 @@ Color Camera::RayColor(const Ray& ray, int depth, const Hittable& world) const {
   const Vec3 unit_direction = UnitVector(ray.direction());
   const Float a = 0.5 * (unit_direction.y() + 1.0);
   return (1.0 - a) * white + a * blue;
+}
+
+Point3 Camera::SampleDefocusDisk() const {
+  Point3 p = RandomInUnitDisk();
+  return center_ + (p.x() * defocus_disk_u_) + (p.y() * defocus_disk_v_);
 }

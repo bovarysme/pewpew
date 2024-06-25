@@ -16,6 +16,8 @@ struct CameraSettings {
   Point3 look_from;
   Point3 look_at;
   Vec3 view_up;
+  Float defocus_angle;
+  Float focus_distance;
 };
 
 class Camera {
@@ -28,6 +30,7 @@ class Camera {
   void Initialize();
   Ray GetRay(int i, int j) const;
   Color RayColor(const Ray& ray, int depth, const Hittable& world) const;
+  Point3 SampleDefocusDisk() const;
 
   CameraSettings settings_;
   Float pixel_samples_scale_;
@@ -38,6 +41,8 @@ class Camera {
   Vec3 pixel_delta_u_;
   Vec3 pixel_delta_v_;
   Point3 upper_left_pixel_location_;
+  Vec3 defocus_disk_u_;
+  Vec3 defocus_disk_v_;
 };
 
 #endif  // PEWPEW_CAMERA_H_
