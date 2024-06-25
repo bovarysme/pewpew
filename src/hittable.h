@@ -23,6 +23,7 @@ class HitRecord {
   Float t() const { return t_; }
   Point3 p() const { return p_; }
   Material* material() const { return material_; }
+  bool is_front_face() const { return is_front_face_; }
   Vec3 normal() const { return normal_; }
 
  private:

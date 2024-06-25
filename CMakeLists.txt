@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_executable(pewpew
                src/main.cc
                src/camera.cc
+               src/dielectric.cc
                src/hittable_list.cc
                src/lambertian.cc
                src/metal.cc

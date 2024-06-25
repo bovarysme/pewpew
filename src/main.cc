@@ -2,6 +2,7 @@
 
 #include "camera.h"
 #include "color.h"
+#include "dielectric.h"
 #include "hittable_list.h"
 #include "lambertian.h"
 #include "material.h"
@@ -12,7 +13,8 @@
 int main() {
   Lambertian material_ground{Color{0.8, 0.8, 0.0}};
   Lambertian material_center{Color{0.1, 0.2, 0.5}};
-  Metal material_left{Color{0.8, 0.8, 0.8}, 0.3};
+  Dielectric material_left{1.5};
+  Dielectric material_bubble{1.0 / 1.5};
   Metal material_right{Color{0.8, 0.6, 0.2}, 1.0};
 
   HittableList world;
@@ -23,8 +25,10 @@ int main() {
   world.Add(
       std::make_shared<Sphere>(Point3{-1.0, 0.0, -1.0}, 0.5, &material_left));
   world.Add(
+      std::make_shared<Sphere>(Point3{-1.0, 0.0, -1.0}, 0.4, &material_bubble));
+  world.Add(
       std::make_shared<Sphere>(Point3{1.0, 0.0, -1.0}, 0.5, &material_right));
 
-  Camera camera{640, 360, 128, 8};
+  Camera camera{640, 360, 128, 16};
   camera.Render(world);
 }

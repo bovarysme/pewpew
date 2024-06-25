@@ -115,4 +115,16 @@ inline Vec3 Reflect(const Vec3& direction, const Vec3& normal) {
   return direction - 2 * Dot(direction, normal) * normal;
 }
 
+inline Vec3 Refract(const Vec3& direction, const Vec3& normal,
+                    Float etai_over_etar) {
+  // Prevent errors from floating point approximation.
+  const Float cos_theta = std::fmin(Dot(-direction, normal), 1.0);
+  const Vec3 refracted_perpendicular =
+      etai_over_etar * (direction + cos_theta * normal);
+  const Vec3 refracted_parallel =
+      -std::sqrt(std::fabs(1.0 - refracted_perpendicular.length_squared())) *
+      normal;
+  return refracted_perpendicular + refracted_parallel;
+}
+
 #endif  // PEWPEW_VEC3_H_
