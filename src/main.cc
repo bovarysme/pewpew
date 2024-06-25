@@ -29,6 +29,17 @@ int main() {
   world.Add(
       std::make_shared<Sphere>(Point3{1.0, 0.0, -1.0}, 0.5, &material_right));
 
-  Camera camera{640, 360, 128, 16};
+  CameraSettings settings{
+      .image_width = 640,
+      .image_height = 360,
+      .samples_per_pixel = 128,
+      .max_depth = 16,
+      .fov = 30,
+      .look_from = Point3{-2, 2, 1},
+      .look_at = Point3{0, 0, -1},
+      .view_up = Vec3{0, 1, 0},
+  };
+
+  Camera camera{settings};
   camera.Render(world);
 }

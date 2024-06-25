@@ -1,5 +1,6 @@
 #include "camera.h"
 
+#include <cmath>
 #include <iostream>
 #include <limits>
 #include <optional>
@@ -15,17 +16,19 @@
 void Camera::Render(const Hittable& world) {
   Initialize();
 
-  std::cout << "P3\n" << image_width_ << ' ' << image_height_ << "\n255\n";
+  std::cout << "P3\n"
+            << settings_.image_width << ' ' << settings_.image_height
+            << "\n255\n";
 
-  for (int j = 0; j < image_height_; j++) {
-    std::clog << "\rScanlines remaining: " << (image_height_ - j) << ' '
-              << std::flush;
+  for (int j = 0; j < settings_.image_height; j++) {
+    std::clog << "\rScanlines remaining: " << (settings_.image_height - j)
+              << ' ' << std::flush;
 
-    for (int i = 0; i < image_width_; i++) {
+    for (int i = 0; i < settings_.image_width; i++) {
       Color pixel_color{};
-      for (int sample = 0; sample < samples_per_pixel_; sample++) {
+      for (int sample = 0; sample < settings_.samples_per_pixel; sample++) {
         const Ray ray = GetRay(i, j);
-        pixel_color += RayColor(ray, max_depth_, world);
+        pixel_color += RayColor(ray, settings_.max_depth, world);
       }
 
       WriteColor(std::cout, pixel_samples_scale_ * pixel_color);
@@ -36,23 +39,30 @@ void Camera::Render(const Hittable& world) {
 }
 
 void Camera::Initialize() {
-  pixel_samples_scale_ = 1.0 / samples_per_pixel_;
+  pixel_samples_scale_ = 1.0 / settings_.samples_per_pixel;
 
-  center_ = Point3{};
+  center_ = settings_.look_from;
 
-  const Float focal_length = 1.0;
-  const Float viewport_height = 2.0;
+  const Float focal_length = (settings_.look_from - settings_.look_at).length();
+  const Float theta = DegreesToRadians(settings_.fov);
+  const Float h = std::tan(theta / 2);
+  const Float viewport_height = 2.0 * h * focal_length;
   const Float viewport_width =
-      viewport_height * (static_cast<Float>(image_width_) / image_height_);
+      viewport_height *
+      (static_cast<Float>(settings_.image_width) / settings_.image_height);
 
-  const Vec3 viewport_u{viewport_width, 0, 0};
-  const Vec3 viewport_v{0, -viewport_height, 0};
+  w_ = UnitVector(settings_.look_from - settings_.look_at);
+  u_ = UnitVector(Cross(settings_.view_up, w_));
+  v_ = Cross(w_, u_);
 
-  pixel_delta_u_ = viewport_u / image_width_;
-  pixel_delta_v_ = viewport_v / image_height_;
+  const Vec3 viewport_u = viewport_width * u_;
+  const Vec3 viewport_v = viewport_height * -v_;
+
+  pixel_delta_u_ = viewport_u / settings_.image_width;
+  pixel_delta_v_ = viewport_v / settings_.image_height;
 
   const Vec3 viewport_upper_left =
-      center_ - Vec3(0, 0, focal_length) - viewport_u / 2 - viewport_v / 2;
+      center_ - (focal_length * w_) - viewport_u / 2 - viewport_v / 2;
   upper_left_pixel_location_ =
       viewport_upper_left + 0.5 * (pixel_delta_u_ + pixel_delta_v_);
 }
