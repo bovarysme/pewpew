@@ -16,10 +16,6 @@
 void Camera::Render(const Hittable& world) {
   Initialize();
 
-  std::cout << "P3\n"
-            << settings_.image_width << ' ' << settings_.image_height
-            << "\n255\n";
-
   for (int j = 0; j < settings_.image_height; j++) {
     std::clog << "\rScanlines remaining: " << (settings_.image_height - j)
               << ' ' << std::flush;
@@ -31,14 +27,21 @@ void Camera::Render(const Hittable& world) {
         pixel_color += RayColor(ray, settings_.max_depth, world);
       }
 
-      WriteColor(std::cout, pixel_samples_scale_ * pixel_color);
+      const int index = (j * settings_.image_width + i) * num_color_components_;
+      StoreColor(pixel_data_, index, pixel_samples_scale_ * pixel_color);
     }
   }
 
-  std::clog << "\rDone.                 \n";
+  std::clog << "\rWriting image.        " << std::flush;
+  WriteImage();
+  std::clog << "\rDone.         \n";
 }
 
 void Camera::Initialize() {
+  num_color_components_ = 3;
+  pixel_data_.reserve(settings_.image_width * settings_.image_height *
+                      num_color_components_);
+
   pixel_samples_scale_ = 1.0 / settings_.samples_per_pixel;
 
   center_ = settings_.look_from;
@@ -115,6 +118,20 @@ Color Camera::RayColor(const Ray& ray, int depth, const Hittable& world) const {
   const Vec3 unit_direction = UnitVector(ray.direction());
   const Float a = 0.5 * (unit_direction.y() + 1.0);
   return (1.0 - a) * white + a * blue;
+}
+
+void Camera::WriteImage() {
+  std::cout << "P3\n"
+            << settings_.image_width << ' ' << settings_.image_height
+            << "\n255\n";
+
+  for (int j = 0; j < settings_.image_height; j++) {
+    for (int i = 0; i < settings_.image_width; i++) {
+      const int index = (j * settings_.image_width + i) * num_color_components_;
+      std::cout << pixel_data_[index] << ' ' << pixel_data_[index + 1] << ' '
+                << pixel_data_[index + 2] << '\n';
+    }
+  }
 }
 
 Point3 Camera::SampleDefocusDisk() const {

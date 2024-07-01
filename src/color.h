@@ -14,7 +14,8 @@ inline Float LinearToGamma(double linear_component) {
   return linear_component > 0 ? std::sqrt(linear_component) : 0;
 }
 
-inline void WriteColor(std::ostream& out, const Color& pixel_color) {
+inline void StoreColor(std::vector<int>& pixel_data, int index,
+                       const Color& pixel_color) {
   Float r = pixel_color.x();
   Float g = pixel_color.y();
   Float b = pixel_color.z();
@@ -25,11 +26,9 @@ inline void WriteColor(std::ostream& out, const Color& pixel_color) {
 
   const Float min = 0.0;
   const Float max = 0.999;
-  const int r_byte = static_cast<int>(256 * std::clamp(r, min, max));
-  const int g_byte = static_cast<int>(256 * std::clamp(g, min, max));
-  const int b_byte = static_cast<int>(256 * std::clamp(b, min, max));
-
-  out << r_byte << ' ' << g_byte << ' ' << b_byte << '\n';
+  pixel_data[index] = static_cast<int>(256 * std::clamp(r, min, max));
+  pixel_data[index + 1] = static_cast<int>(256 * std::clamp(g, min, max));
+  pixel_data[index + 2] = static_cast<int>(256 * std::clamp(b, min, max));
 }
 
 #endif  // PEWPEW_COLOR_H_

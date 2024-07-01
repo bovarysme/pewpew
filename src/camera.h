@@ -1,6 +1,8 @@
 #ifndef PEWPEW_CAMERA_H_
 #define PEWPEW_CAMERA_H_
 
+#include <vector>
+
 #include "color.h"
 #include "float.h"
 #include "hittable.h"
@@ -30,9 +32,12 @@ class Camera {
   void Initialize();
   Ray GetRay(int i, int j) const;
   Color RayColor(const Ray& ray, int depth, const Hittable& world) const;
+  void WriteImage();
   Point3 SampleDefocusDisk() const;
 
   CameraSettings settings_;
+  int num_color_components_;
+  std::vector<int> pixel_data_;
   Float pixel_samples_scale_;
   Point3 center_;
   Vec3 u_;
