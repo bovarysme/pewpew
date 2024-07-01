@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 
 #include "float.h"
 #include "vec3.h"
