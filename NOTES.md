@@ -7,9 +7,9 @@
 ```
 $ pacman -Suy
 ```
-- Install the clang64 toolchain and CMake:
+- Install the clang64 toolchain, CMake, and the SDL2:
 ```
-$ pacman -S mingw-w64-clang-x86_64-toolchain mingw-w64-clang-x86_64-cmake
+$ pacman -S mingw-w64-clang-x86_64-toolchain mingw-w64-clang-x86_64-cmake mingw-w64-clang-x86_64-SDL2
 ```
 - Add `C:\msys64\clang64\bin` to the PATH.
 
