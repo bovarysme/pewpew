@@ -16,3 +16,7 @@ add_executable(pewpew
 
 # PCG
 target_include_directories(pewpew PRIVATE third_party/pcg-cpp/include)
+
+# SDL2
+find_package(SDL2 REQUIRED)
+target_link_libraries(pewpew ${SDL2_LIBRARIES})

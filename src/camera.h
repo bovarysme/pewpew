@@ -1,6 +1,7 @@
 #ifndef PEWPEW_CAMERA_H_
 #define PEWPEW_CAMERA_H_
 
+#include <mutex>
 #include <vector>
 
 #include "color.h"
@@ -24,9 +25,13 @@ struct CameraSettings {
 
 class Camera {
  public:
-  Camera(CameraSettings settings) : settings_(settings) {}
+  Camera(CameraSettings settings) : settings_(settings), is_rendering_(false) {}
 
   void Render(const Hittable& world);
+  void CopyTo(int* buffer);
+
+  bool is_rendering() const { return is_rendering_; }
+  void set_is_rendering(bool is_rendering) { is_rendering_ = is_rendering; }
 
  private:
   void Initialize();
@@ -36,8 +41,10 @@ class Camera {
   Point3 SampleDefocusDisk() const;
 
   CameraSettings settings_;
+  bool is_rendering_;
   int num_color_components_;
   std::vector<int> pixel_data_;
+  std::mutex pixel_data_mutex_;
   Float pixel_samples_scale_;
   Point3 center_;
   Vec3 u_;

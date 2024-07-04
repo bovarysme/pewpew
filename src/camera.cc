@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <mutex>
 #include <optional>
 
 #include "color.h"
@@ -28,19 +29,43 @@ void Camera::Render(const Hittable& world) {
       }
 
       const int index = (j * settings_.image_width + i) * num_color_components_;
-      StoreColor(pixel_data_, index, pixel_samples_scale_ * pixel_color);
+      {
+        const std::lock_guard<std::mutex> guard(pixel_data_mutex_);
+        StoreColor(pixel_data_, index, pixel_samples_scale_ * pixel_color);
+      }
     }
   }
 
-  std::clog << "\rWriting image.        " << std::flush;
-  WriteImage();
-  std::clog << "\rDone.         \n";
+  // std::clog << "\rWriting image.        " << std::flush;
+  // WriteImage();
+  // std::clog << "\rDone.                 " << std::flush;
+
+  is_rendering_ = false;
+}
+
+void Camera::CopyTo(int* buffer) {
+  const std::lock_guard<std::mutex> guard(pixel_data_mutex_);
+
+  for (int j = 0; j < settings_.image_height; j++) {
+    for (int i = 0; i < settings_.image_width; i++) {
+      int src_index = (j * settings_.image_width + i) * num_color_components_;
+      uint8_t r = static_cast<uint8_t>(pixel_data_[src_index]);
+      uint8_t g = static_cast<uint8_t>(pixel_data_[src_index + 1]);
+      uint8_t b = static_cast<uint8_t>(pixel_data_[src_index + 2]);
+
+      int dest_index = j * settings_.image_width + i;
+      buffer[dest_index] = (r << 16) | (g << 8) | b;
+    }
+  }
 }
 
 void Camera::Initialize() {
   num_color_components_ = 3;
-  pixel_data_.reserve(settings_.image_width * settings_.image_height *
-                      num_color_components_);
+  {
+    const std::lock_guard<std::mutex> guard(pixel_data_mutex_);
+    pixel_data_.reserve(settings_.image_width * settings_.image_height *
+                        num_color_components_);
+  }
 
   pixel_samples_scale_ = 1.0 / settings_.samples_per_pixel;
 
@@ -121,6 +146,8 @@ Color Camera::RayColor(const Ray& ray, int depth, const Hittable& world) const {
 }
 
 void Camera::WriteImage() {
+  const std::lock_guard<std::mutex> guard(pixel_data_mutex_);
+
   std::cout << "P3\n"
             << settings_.image_width << ' ' << settings_.image_height
             << "\n255\n";
