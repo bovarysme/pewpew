@@ -30,6 +30,7 @@ class Camera {
   void Render(const Hittable& world);
   void CopyTo(int* buffer);
 
+  const CameraSettings& settings() const { return settings_; }
   bool is_rendering() const { return is_rendering_; }
   void set_is_rendering(bool is_rendering) { is_rendering_ = is_rendering; }
 
