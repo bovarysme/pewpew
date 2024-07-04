@@ -13,3 +13,6 @@ add_executable(pewpew
                src/lambertian.cc
                src/metal.cc
                src/sphere.cc)
+
+# PCG
+target_include_directories(pewpew PRIVATE third_party/pcg-cpp/include)

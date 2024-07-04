@@ -4,8 +4,8 @@
 #include <numbers>
 #include <random>
 
-#include "../third_party/pcg-cpp/include/pcg_random.hpp"
 #include "float.h"
+#include "pcg_random.hpp"
 
 inline Float DegreesToRadians(Float degrees) {
   return degrees * std::numbers::pi / 180.0;
