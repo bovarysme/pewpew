@@ -5,6 +5,7 @@
 #include <limits>
 #include <mutex>
 #include <optional>
+#include <stop_token>
 
 #include "color.h"
 #include "float.h"
@@ -14,10 +15,10 @@
 #include "utils.h"
 #include "vec3.h"
 
-void Camera::Render(const Hittable& world) {
+void Camera::Render(std::stop_token token, const Hittable& world) {
   Initialize();
 
-  for (int j = 0; j < settings_.image_height; j++) {
+  for (int j = 0; j < settings_.image_height && !token.stop_requested(); j++) {
     std::clog << "\rScanlines remaining: " << (settings_.image_height - j)
               << ' ' << std::flush;
 

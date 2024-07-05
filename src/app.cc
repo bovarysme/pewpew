@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 
+#include <functional>
 #include <iostream>
 #include <thread>
 
@@ -27,8 +28,8 @@ void App::Run() {
       if (rendering_thread_.joinable()) {
         rendering_thread_.join();
       }
-      rendering_thread_ =
-          std::thread{&Camera::Render, &camera_, std::ref(world_)};
+      rendering_thread_ = std::jthread{
+          std::bind_front(&Camera::Render, &camera_), std::ref(world_)};
     }
 
     void* pixels;

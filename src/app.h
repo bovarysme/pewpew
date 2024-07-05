@@ -24,8 +24,6 @@ class App {
       SDL_DestroyWindow(window_);
     }
     SDL_Quit();
-
-    rendering_thread_.join();
   }
 
   void Run();
@@ -38,7 +36,7 @@ class App {
   SDL_Window* window_;
   SDL_Renderer* renderer_;
   SDL_Texture* texture_;
-  std::thread rendering_thread_;
+  std::jthread rendering_thread_;
 };
 
 #endif  // PEWPEW_APP_H_

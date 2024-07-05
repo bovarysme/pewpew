@@ -2,6 +2,7 @@
 #define PEWPEW_CAMERA_H_
 
 #include <mutex>
+#include <stop_token>
 #include <vector>
 
 #include "color.h"
@@ -27,7 +28,7 @@ class Camera {
  public:
   Camera(CameraSettings settings) : settings_(settings), is_rendering_(false) {}
 
-  void Render(const Hittable& world);
+  void Render(std::stop_token token, const Hittable& world);
   void CopyTo(int* buffer);
 
   const CameraSettings& settings() const { return settings_; }

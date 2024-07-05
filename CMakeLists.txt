@@ -5,6 +5,10 @@ project(pewpew)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# For `std::jthread` and `std::stop_token`
+# (https://libcxx.llvm.org/Status/Cxx20.html#note-p0660).
+add_compile_options(-fexperimental-library)
+
 add_executable(pewpew
                src/main.cc
                src/app.cc
