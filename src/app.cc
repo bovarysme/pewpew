@@ -7,6 +7,9 @@
 #include <thread>
 
 #include "camera.h"
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_sdlrenderer2.h"
 
 void App::Run() {
   bool success = Initialize();
@@ -14,14 +17,23 @@ void App::Run() {
     return;
   }
 
+  bool show_demo_window = true;
+
   bool is_running = true;
   while (is_running) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
+      ImGui_ImplSDL2_ProcessEvent(&event);
       if (event.type == SDL_QUIT) {
         is_running = false;
       }
     }
+
+    ImGui_ImplSDLRenderer2_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::ShowDemoWindow(&show_demo_window);
 
     if (!camera_.is_rendering()) {
       camera_.set_is_rendering(true);
@@ -54,6 +66,9 @@ void App::Run() {
                 << std::endl;
       break;
     }
+
+    ImGui::Render();
+    ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer_);
 
     SDL_RenderPresent(renderer_);
   }
@@ -92,6 +107,11 @@ bool App::Initialize() {
               << std::endl;
     return false;
   }
+
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGui_ImplSDL2_InitForSDLRenderer(window_, renderer_);
+  ImGui_ImplSDLRenderer2_Init(renderer_);
 
   return true;
 }

@@ -19,9 +19,24 @@ add_executable(pewpew
                src/metal.cc
                src/sphere.cc)
 
-# PCG
-target_include_directories(pewpew PRIVATE third_party/pcg-cpp/include)
-
 # SDL2
 find_package(SDL2 REQUIRED)
 target_link_libraries(pewpew ${SDL2_LIBRARIES})
+
+# ImGui
+add_library(imgui
+            third_party/imgui/imgui.cpp
+            third_party/imgui/imgui_demo.cpp
+            third_party/imgui/imgui_draw.cpp
+            third_party/imgui/imgui_tables.cpp
+            third_party/imgui/imgui_widgets.cpp
+            third_party/imgui/backends/imgui_impl_sdl2.cpp
+            third_party/imgui/backends/imgui_impl_sdlrenderer2.cpp)
+target_include_directories(imgui PUBLIC
+                           third_party/imgui
+                           third_party/imgui/backends)
+target_link_libraries(imgui ${SDL2_LIBRARIES})
+target_link_libraries(pewpew imgui)
+
+# PCG
+target_include_directories(pewpew PRIVATE third_party/pcg-cpp/include)

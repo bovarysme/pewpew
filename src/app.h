@@ -7,6 +7,9 @@
 
 #include "camera.h"
 #include "hittable_list.h"
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_sdlrenderer2.h"
 
 class App {
  public:
@@ -14,6 +17,10 @@ class App {
       : camera_(camera), world_(world) {}
 
   ~App() {
+    ImGui_ImplSDLRenderer2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
     if (texture_ != nullptr) {
       SDL_DestroyTexture(texture_);
     }
