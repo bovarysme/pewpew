@@ -17,8 +17,6 @@ void App::Run() {
     return;
   }
 
-  bool show_demo_window = true;
-
   bool is_running = true;
   while (is_running) {
     SDL_Event event;
@@ -33,7 +31,9 @@ void App::Run() {
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::ShowDemoWindow(&show_demo_window);
+    ImGui::Begin("Debug");
+    ImGui::ProgressBar(camera_.progress());
+    ImGui::End();
 
     if (!camera_.is_rendering()) {
       camera_.set_is_rendering(true);

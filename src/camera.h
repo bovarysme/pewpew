@@ -34,6 +34,7 @@ class Camera {
   const CameraSettings& settings() const { return settings_; }
   bool is_rendering() const { return is_rendering_; }
   void set_is_rendering(bool is_rendering) { is_rendering_ = is_rendering; }
+  Float progress() const { return progress_; }
 
  private:
   void Initialize();
@@ -44,6 +45,7 @@ class Camera {
 
   CameraSettings settings_;
   bool is_rendering_;
+  Float progress_;
   int num_color_components_;
   std::vector<int> pixel_data_;
   std::mutex pixel_data_mutex_;

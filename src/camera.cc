@@ -19,8 +19,7 @@ void Camera::Render(std::stop_token token, const Hittable& world) {
   Initialize();
 
   for (int j = 0; j < settings_.image_height && !token.stop_requested(); j++) {
-    std::clog << "\rScanlines remaining: " << (settings_.image_height - j)
-              << ' ' << std::flush;
+    progress_ = j / static_cast<Float>(settings_.image_height - 1);
 
     for (int i = 0; i < settings_.image_width; i++) {
       Color pixel_color{};
@@ -61,6 +60,8 @@ void Camera::CopyTo(int* buffer) {
 }
 
 void Camera::Initialize() {
+  progress_ = 0.0;
+
   num_color_components_ = 3;
   {
     const std::lock_guard<std::mutex> guard(pixel_data_mutex_);
