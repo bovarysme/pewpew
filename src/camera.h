@@ -26,7 +26,11 @@ struct CameraSettings {
 
 class Camera {
  public:
-  Camera(CameraSettings settings) : settings_(settings), is_rendering_(false) {}
+  Camera(CameraSettings settings)
+      : settings_(settings),
+        is_rendering_(false),
+        progress_(0.0),
+        num_color_components_(3) {}
 
   void Render(std::stop_token token, const Hittable& world);
   void CopyTo(int* buffer);

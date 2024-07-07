@@ -60,9 +60,6 @@ void Camera::CopyTo(int* buffer) {
 }
 
 void Camera::Initialize() {
-  progress_ = 0.0;
-
-  num_color_components_ = 3;
   {
     const std::lock_guard<std::mutex> guard(pixel_data_mutex_);
     pixel_data_.reserve(settings_.image_width * settings_.image_height *
