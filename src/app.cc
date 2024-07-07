@@ -80,12 +80,9 @@ bool App::Initialize() {
     return false;
   }
 
-  const int width = camera_.settings().image_width;
-  const int height = camera_.settings().image_height;
-
   window_ =
       SDL_CreateWindow("pewpew", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                       width, height, SDL_WINDOW_RESIZABLE);
+                       window_width_, window_height_, SDL_WINDOW_RESIZABLE);
   if (window_ == nullptr) {
     std::cerr << "Error calling SDL_CreateWindow: " << SDL_GetError()
               << std::endl;
@@ -100,8 +97,9 @@ bool App::Initialize() {
     return false;
   }
 
-  texture_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_ARGB8888,
-                               SDL_TEXTUREACCESS_STREAMING, width, height);
+  texture_ = SDL_CreateTexture(
+      renderer_, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
+      camera_.settings().image_width, camera_.settings().image_height);
   if (texture_ == nullptr) {
     std::cerr << "Error calling SDL_CreateTexture: " << SDL_GetError()
               << std::endl;

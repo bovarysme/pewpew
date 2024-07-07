@@ -74,9 +74,11 @@ int main(int argc, char** argv) {
       .defocus_angle = 0.6,
       .focus_distance = 10.0,
   };
-
   Camera camera{settings};
-  App app{camera, world};
+
+  int window_width = 1280;
+  int window_height = 720;
+  App app{window_width, window_height, camera, world};
   app.Run();
 
   return 0;

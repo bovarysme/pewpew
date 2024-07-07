@@ -13,8 +13,12 @@
 
 class App {
  public:
-  App(Camera& camera, const HittableList& world)
-      : camera_(camera), world_(world) {}
+  App(int window_width, int window_height, Camera& camera,
+      const HittableList& world)
+      : window_width_(window_width),
+        window_height_(window_height),
+        camera_(camera),
+        world_(world) {}
 
   ~App() {
     ImGui_ImplSDLRenderer2_Shutdown();
@@ -38,6 +42,8 @@ class App {
  private:
   bool Initialize();
 
+  int window_width_;
+  int window_height_;
   Camera& camera_;
   const HittableList& world_;
   SDL_Window* window_;
