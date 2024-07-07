@@ -41,6 +41,7 @@ class App {
 
  private:
   bool Initialize();
+  void ShowDebugWindow();
 
   int window_width_;
   int window_height_;
