@@ -10,6 +10,7 @@ class Vec3 {
  public:
   Vec3() : e_{0, 0, 0} {}
   Vec3(Float e0, Float e1, Float e2) : e_{e0, e1, e2} {}
+  Vec3(const Float (&e)[3]) : e_{e[0], e[1], e[2]} {}
 
   Vec3& operator+=(const Vec3& value) {
     e_[0] += value.x();

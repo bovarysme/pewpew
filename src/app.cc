@@ -13,6 +13,23 @@
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
 
+CameraSettings ToCameraSettings(const AppSettings& settings) {
+  return CameraSettings{
+      .image_width =
+          static_cast<int>(settings.window_width * settings.image_scale_factor),
+      .image_height = static_cast<int>(settings.window_height *
+                                       settings.image_scale_factor),
+      .samples_per_pixel = 1 << settings.samples_per_pixel_log2,
+      .max_depth = 1 << settings.max_depth_log2,
+      .fov = settings.fov,
+      .look_from = Point3{settings.look_from},
+      .look_at = Point3{settings.look_at},
+      .view_up = Vec3{settings.view_up},
+      .defocus_angle = settings.defocus_angle,
+      .focus_distance = settings.focus_distance,
+  };
+}
+
 void App::Run() {
   bool success = Initialize();
   if (!success) {
@@ -80,9 +97,9 @@ bool App::Initialize() {
     return false;
   }
 
-  window_ =
-      SDL_CreateWindow("pewpew", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                       window_width_, window_height_, SDL_WINDOW_RESIZABLE);
+  window_ = SDL_CreateWindow("pewpew", SDL_WINDOWPOS_CENTERED,
+                             SDL_WINDOWPOS_CENTERED, settings_.window_width,
+                             settings_.window_height, SDL_WINDOW_RESIZABLE);
   if (window_ == nullptr) {
     std::cerr << "Error calling SDL_CreateWindow: " << SDL_GetError()
               << std::endl;
@@ -116,18 +133,6 @@ bool App::Initialize() {
 
 void App::ShowDebugWindow() {
   static bool is_rendering = true;
-  static float scale_factor = 0.5;
-
-  static int image_width = 640;
-  static int image_height = 360;
-  static int samples_per_pixel_log2 = 0;
-  static int max_depth_log2 = 3;
-  static float fov = 20;
-  static float look_from[3] = {13, 2, 3};
-  static float look_at[3] = {0, 0, 0};
-  static float view_up[3] = {0, 1, 0};
-  static float defocus_angle = 0.6;
-  static float focus_distance = 10.0;
 
   ImGui::Begin("Debug");
 
@@ -141,30 +146,38 @@ void App::ShowDebugWindow() {
 
   ImGui::SeparatorText("Camera settings");
 
-  ImGui::Text("Window size: %dx%d", window_width_, window_height_);
-  ImGui::Text("Image size: %dx%d", image_width, image_height);
-  ImGui::DragFloat("Scale factor", &scale_factor, /*v_speed=*/0.1f,
-                   /*v_min=*/0.1f, std::numeric_limits<float>::max(), "%.1fx");
+  ImGui::Text("Window size: %dx%d", settings_.window_width,
+              settings_.window_height);
+  ImGui::Text("Image size: %dx%d", camera_.settings().image_width,
+              camera_.settings().image_height);
+  ImGui::DragFloat("Scale factor", &settings_.image_scale_factor,
+                   /*v_speed=*/0.1f, /*v_min=*/0.1f,
+                   std::numeric_limits<float>::max(), "%.1fx");
 
   const int max_int_log2 = 30;
-  std::string samples_per_pixel = std::to_string(1 << samples_per_pixel_log2);
-  ImGui::DragInt("Samples per pixel", &samples_per_pixel_log2, /*v_speed=*/0.1f,
+  std::string samples_per_pixel =
+      std::to_string(1 << settings_.samples_per_pixel_log2);
+  ImGui::DragInt("Samples per pixel", &settings_.samples_per_pixel_log2,
+                 /*v_speed=*/0.1f,
                  /*v_min=*/0, max_int_log2, samples_per_pixel.c_str());
 
-  std::string max_depth = std::to_string(1 << max_depth_log2);
-  ImGui::DragInt("Max depth", &max_depth_log2, /*v_speed=*/0.1f, /*v_min=*/0,
-                 max_int_log2, max_depth.c_str());
+  std::string max_depth = std::to_string(1 << settings_.max_depth_log2);
+  ImGui::DragInt("Max depth", &settings_.max_depth_log2, /*v_speed=*/0.1f,
+                 /*v_min=*/0, max_int_log2, max_depth.c_str());
 
-  ImGui::DragFloat("FOV", &fov, /*v_speed=*/1.0f, /*v_min=*/1.0f,
+  ImGui::DragFloat("FOV", &settings_.fov, /*v_speed=*/1.0f,
+                   /*v_min=*/1.0f,
                    /*v_max=*/179.0f, "%.f deg");
 
-  ImGui::DragFloat3("Look from", look_from, /*v_speed=*/0.1f);
-  ImGui::DragFloat3("Look at", look_at, /*v_speed=*/0.1f);
-  ImGui::DragFloat3("View up", view_up, /*v_speed=*/0.1f);
+  ImGui::DragFloat3("Look from", settings_.look_from, /*v_speed=*/0.1f);
+  ImGui::DragFloat3("Look at", settings_.look_at, /*v_speed=*/0.1f);
+  ImGui::DragFloat3("View up", settings_.view_up, /*v_speed=*/0.1f);
 
-  ImGui::DragFloat("Defocus angle", &defocus_angle, /*v_speed=*/0.1f,
+  ImGui::DragFloat("Defocus angle", &settings_.defocus_angle,
+                   /*v_speed=*/0.1f,
                    /*v_min=*/0.0f, /*v_max=*/179.0f, "%.1f deg");
-  ImGui::DragFloat("Focus distance", &focus_distance, /*v_speed=*/0.1f,
+  ImGui::DragFloat("Focus distance", &settings_.focus_distance,
+                   /*v_speed=*/0.1f,
                    /*v_min=*/0.1f, std::numeric_limits<float>::max(), "%.1f");
 
   ImGui::End();

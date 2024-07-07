@@ -60,25 +60,21 @@ int main(int argc, char** argv) {
   Metal material3{Color{0.7, 0.6, 0.5}, 0.0};
   world.Add(std::make_shared<Sphere>(Point3{4, 1, 0}, 1.0, &material3));
 
-  CameraSettings settings{
-      .image_width = 640,
-      .image_height = 360,
-      .samples_per_pixel = 1,
-      .max_depth = 8,
+  AppSettings settings{
+      .window_width = 1280,
+      .window_height = 720,
 
-      .fov = 20,
-      .look_from = Point3{13, 2, 3},
-      .look_at = Point3{0, 0, 0},
-      .view_up = Vec3{0, 1, 0},
-
-      .defocus_angle = 0.6,
-      .focus_distance = 10.0,
+      .image_scale_factor = 0.5f,
+      .samples_per_pixel_log2 = 1,
+      .max_depth_log2 = 3,
+      .fov = 20.0f,
+      .look_from = {13.0f, 2.0f, 3.0f},
+      .look_at = {0.0f, 0.0f, 0.0f},
+      .view_up = {0.0f, 1.0f, 0.0f},
+      .defocus_angle = 0.6f,
+      .focus_distance = 10.0f,
   };
-  Camera camera{settings};
-
-  int window_width = 1280;
-  int window_height = 720;
-  App app{window_width, window_height, camera, world};
+  App app{settings, world};
   app.Run();
 
   return 0;

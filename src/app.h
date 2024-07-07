@@ -11,14 +11,30 @@
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
 
+struct AppSettings {
+  int window_width;
+  int window_height;
+
+  // Camera settings.
+  float image_scale_factor;
+  int samples_per_pixel_log2;
+  int max_depth_log2;
+  float fov;
+  float look_from[3];
+  float look_at[3];
+  float view_up[3];
+  float defocus_angle;
+  float focus_distance;
+};
+
+CameraSettings ToCameraSettings(const AppSettings& settings);
+
 class App {
  public:
-  App(int window_width, int window_height, Camera& camera,
-      const HittableList& world)
-      : window_width_(window_width),
-        window_height_(window_height),
-        camera_(camera),
-        world_(world) {}
+  App(const AppSettings& settings, const HittableList& world)
+      : settings_(settings),
+        world_(world),
+        camera_(ToCameraSettings(settings)) {}
 
   ~App() {
     ImGui_ImplSDLRenderer2_Shutdown();
@@ -43,10 +59,9 @@ class App {
   bool Initialize();
   void ShowDebugWindow();
 
-  int window_width_;
-  int window_height_;
-  Camera& camera_;
+  AppSettings settings_;
   const HittableList& world_;
+  Camera camera_;
   SDL_Window* window_;
   SDL_Renderer* renderer_;
   SDL_Texture* texture_;
