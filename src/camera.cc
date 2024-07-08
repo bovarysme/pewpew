@@ -73,10 +73,6 @@ void Camera::Render(std::stop_token token, const Hittable& world) {
     }
   }
 
-  // std::clog << "\rWriting image.        " << std::flush;
-  // WriteImage();
-  // std::clog << "\rDone.                 " << std::flush;
-
   is_rendering_ = false;
 }
 
