@@ -1,6 +1,7 @@
 #ifndef PEWPEW_CAMERA_H_
 #define PEWPEW_CAMERA_H_
 
+#include <atomic>
 #include <mutex>
 #include <stop_token>
 #include <vector>
@@ -37,6 +38,7 @@ class Camera {
   void CopyTo(int* buffer);
 
   const CameraSettings& settings() const { return settings_; }
+  void set_settings(const CameraSettings& settings) { settings_ = settings; }
   bool is_rendering() const { return is_rendering_; }
   void set_is_rendering(bool is_rendering) { is_rendering_ = is_rendering; }
   Float progress() const { return progress_; }
@@ -48,7 +50,7 @@ class Camera {
   Point3 SampleDefocusDisk() const;
 
   CameraSettings settings_;
-  bool is_rendering_;
+  std::atomic<bool> is_rendering_;
   Float progress_;
   int num_color_components_;
   std::vector<int> pixel_data_;

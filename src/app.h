@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 
+#include <string>
 #include <thread>
 
 #include "camera.h"
@@ -14,6 +15,8 @@
 struct AppSettings {
   int window_width;
   int window_height;
+
+  bool enable_rendering;
 
   // Camera settings.
   float image_scale_factor;
@@ -29,12 +32,31 @@ struct AppSettings {
 
 CameraSettings ToCameraSettings(const AppSettings& settings);
 
+enum class RenderingState {
+  kStartRendering,
+  kRendering,
+  kRequestStop,
+  kUpdateSettings,
+  kIdle,
+};
+
+std::string RenderingStateToString(RenderingState state);
+
+enum class SettingsUpdateType {
+  kNoUpdates,
+  kUpdateSettings,
+  kUpdateTextureAndSettings,
+};
+
 class App {
  public:
   App(const AppSettings& settings, const HittableList& world)
       : settings_(settings),
         world_(world),
-        camera_(ToCameraSettings(settings)) {}
+        camera_(ToCameraSettings(settings)),
+        rendering_state_(RenderingState::kStartRendering),
+        settings_update_requested_(false),
+        settings_update_type_(SettingsUpdateType::kNoUpdates) {}
 
   ~App() {
     ImGui_ImplSDLRenderer2_Shutdown();
@@ -57,11 +79,17 @@ class App {
 
  private:
   bool Initialize();
-  void ShowDebugWindow();
+  bool Render();
+  bool CreateTexture();
+  void NextState();
+  SettingsUpdateType ShowDebugWindow();
 
   AppSettings settings_;
   const HittableList& world_;
   Camera camera_;
+  RenderingState rendering_state_;
+  bool settings_update_requested_;
+  SettingsUpdateType settings_update_type_;
   SDL_Window* window_;
   SDL_Renderer* renderer_;
   SDL_Texture* texture_;

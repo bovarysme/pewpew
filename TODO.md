@@ -1,7 +1,6 @@
 # TODO
 ## Features
 
-- Use ImGui to change camera parameters.
 - Use keyboard and mouse to move the camera around.
 - Implement multithreading for the rendering.
 - Implement progressive rendering.

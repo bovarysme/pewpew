@@ -55,8 +55,6 @@ void Camera::Initialize() {
 }
 
 void Camera::Render(std::stop_token token, const Hittable& world) {
-  Initialize();
-
   for (int j = 0; j < settings_.image_height && !token.stop_requested(); j++) {
     progress_ = j / static_cast<Float>(settings_.image_height - 1);
 

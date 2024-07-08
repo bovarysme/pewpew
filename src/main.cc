@@ -64,6 +64,8 @@ int main(int argc, char** argv) {
       .window_width = 1280,
       .window_height = 720,
 
+      .enable_rendering = true,
+
       .image_scale_factor = 0.5f,
       .samples_per_pixel_log2 = 0,
       .max_depth_log2 = 3,
