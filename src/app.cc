@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 
+#include <algorithm>
 #include <functional>
 #include <iostream>
 #include <limits>
@@ -264,19 +265,23 @@ SettingsUpdateType App::ShowDebugWindow() {
               settings_.window_height);
   ImGui::Text("Image size: %dx%d", camera_.settings().image_width,
               camera_.settings().image_height);
-  has_texture_update |=
-      ImGui::DragFloat("Scale factor", &settings_.image_scale_factor,
-                       /*v_speed=*/0.1f, /*v_min=*/0.1f,
-                       std::numeric_limits<float>::max(), "%.1fx");
 
-  const int max_int_log2 = 30;
+  const int max_texture_size = 4096;
+  const float max_scale_factor =
+      max_texture_size / static_cast<float>(std::max(settings_.window_width,
+                                                     settings_.window_height));
+  has_texture_update |= ImGui::DragFloat(
+      "Scale factor", &settings_.image_scale_factor,
+      /*v_speed=*/0.1f, /*v_min=*/0.1f, max_scale_factor, "%.1fx");
+
   std::string samples_per_pixel =
       std::to_string(1 << settings_.samples_per_pixel_log2);
   has_settings_update |=
       ImGui::DragInt("Samples per pixel", &settings_.samples_per_pixel_log2,
                      /*v_speed=*/0.1f,
-                     /*v_min=*/0, max_int_log2, samples_per_pixel.c_str());
+                     /*v_min=*/0, /*v_max=*/12, samples_per_pixel.c_str());
 
+  const int max_int_log2 = 30;
   std::string max_depth = std::to_string(1 << settings_.max_depth_log2);
   has_settings_update |=
       ImGui::DragInt("Max depth", &settings_.max_depth_log2, /*v_speed=*/0.1f,
