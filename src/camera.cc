@@ -15,6 +15,45 @@
 #include "utils.h"
 #include "vec3.h"
 
+void Camera::Initialize() {
+  {
+    const std::lock_guard<std::mutex> guard(pixel_data_mutex_);
+    pixel_data_.reserve(settings_.image_width * settings_.image_height *
+                        num_color_components_);
+  }
+
+  pixel_samples_scale_ = 1.0 / settings_.samples_per_pixel;
+
+  center_ = settings_.look_from;
+
+  const Float theta = DegreesToRadians(settings_.fov);
+  const Float h = std::tan(theta / 2);
+  const Float viewport_height = 2.0 * h * settings_.focus_distance;
+  const Float viewport_width =
+      viewport_height *
+      (static_cast<Float>(settings_.image_width) / settings_.image_height);
+
+  w_ = UnitVector(settings_.look_from - settings_.look_at);
+  u_ = UnitVector(Cross(settings_.view_up, w_));
+  v_ = Cross(w_, u_);
+
+  const Vec3 viewport_u = viewport_width * u_;
+  const Vec3 viewport_v = viewport_height * -v_;
+
+  pixel_delta_u_ = viewport_u / settings_.image_width;
+  pixel_delta_v_ = viewport_v / settings_.image_height;
+
+  const Vec3 viewport_upper_left = center_ - (settings_.focus_distance * w_) -
+                                   viewport_u / 2 - viewport_v / 2;
+  upper_left_pixel_location_ =
+      viewport_upper_left + 0.5 * (pixel_delta_u_ + pixel_delta_v_);
+
+  Float defocus_radius = settings_.focus_distance *
+                         tan(DegreesToRadians(settings_.defocus_angle / 2));
+  defocus_disk_u_ = u_ * defocus_radius;
+  defocus_disk_v_ = v_ * defocus_radius;
+}
+
 void Camera::Render(std::stop_token token, const Hittable& world) {
   Initialize();
 
@@ -57,45 +96,6 @@ void Camera::CopyTo(int* buffer) {
       buffer[dest_index] = (r << 16) | (g << 8) | b;
     }
   }
-}
-
-void Camera::Initialize() {
-  {
-    const std::lock_guard<std::mutex> guard(pixel_data_mutex_);
-    pixel_data_.reserve(settings_.image_width * settings_.image_height *
-                        num_color_components_);
-  }
-
-  pixel_samples_scale_ = 1.0 / settings_.samples_per_pixel;
-
-  center_ = settings_.look_from;
-
-  const Float theta = DegreesToRadians(settings_.fov);
-  const Float h = std::tan(theta / 2);
-  const Float viewport_height = 2.0 * h * settings_.focus_distance;
-  const Float viewport_width =
-      viewport_height *
-      (static_cast<Float>(settings_.image_width) / settings_.image_height);
-
-  w_ = UnitVector(settings_.look_from - settings_.look_at);
-  u_ = UnitVector(Cross(settings_.view_up, w_));
-  v_ = Cross(w_, u_);
-
-  const Vec3 viewport_u = viewport_width * u_;
-  const Vec3 viewport_v = viewport_height * -v_;
-
-  pixel_delta_u_ = viewport_u / settings_.image_width;
-  pixel_delta_v_ = viewport_v / settings_.image_height;
-
-  const Vec3 viewport_upper_left = center_ - (settings_.focus_distance * w_) -
-                                   viewport_u / 2 - viewport_v / 2;
-  upper_left_pixel_location_ =
-      viewport_upper_left + 0.5 * (pixel_delta_u_ + pixel_delta_v_);
-
-  Float defocus_radius = settings_.focus_distance *
-                         tan(DegreesToRadians(settings_.defocus_angle / 2));
-  defocus_disk_u_ = u_ * defocus_radius;
-  defocus_disk_v_ = v_ * defocus_radius;
 }
 
 Ray Camera::GetRay(int i, int j) const {

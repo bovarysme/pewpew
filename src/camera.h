@@ -32,6 +32,7 @@ class Camera {
         progress_(0.0),
         num_color_components_(3) {}
 
+  void Initialize();
   void Render(std::stop_token token, const Hittable& world);
   void CopyTo(int* buffer);
 
@@ -41,7 +42,6 @@ class Camera {
   Float progress() const { return progress_; }
 
  private:
-  void Initialize();
   Ray GetRay(int i, int j) const;
   Color RayColor(const Ray& ray, int depth, const Hittable& world) const;
   void WriteImage();
