@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
       .window_height = 720,
 
       .image_scale_factor = 0.5f,
-      .samples_per_pixel_log2 = 1,
+      .samples_per_pixel_log2 = 0,
       .max_depth_log2 = 3,
       .fov = 20.0f,
       .look_from = {13.0f, 2.0f, 3.0f},
