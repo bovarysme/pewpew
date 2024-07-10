@@ -2,6 +2,7 @@
 #define PEWPEW_CAMERA_H_
 
 #include <atomic>
+#include <chrono>
 #include <mutex>
 #include <stop_token>
 #include <vector>
@@ -28,10 +29,11 @@ struct CameraSettings {
 class Camera {
  public:
   Camera(CameraSettings settings)
-      : settings_(settings),
-        is_rendering_(false),
-        progress_(0.0),
-        num_color_components_(3) {}
+      : settings_{settings},
+        is_rendering_{false},
+        progress_{0.0},
+        render_time_{0.0},
+        num_color_components_{3} {}
 
   void Initialize();
   void Render(std::stop_token token, const Hittable& world);
@@ -42,6 +44,7 @@ class Camera {
   bool is_rendering() const { return is_rendering_; }
   void set_is_rendering(bool is_rendering) { is_rendering_ = is_rendering; }
   Float progress() const { return progress_; }
+  double render_time() const { return render_time_; }
 
  private:
   Ray GetRay(int i, int j) const;
@@ -52,6 +55,7 @@ class Camera {
   CameraSettings settings_;
   std::atomic<bool> is_rendering_;
   Float progress_;
+  double render_time_;
   int num_color_components_;
   std::vector<int> pixel_data_;
   std::mutex pixel_data_mutex_;

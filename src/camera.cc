@@ -1,5 +1,6 @@
 #include "camera.h"
 
+#include <chrono>
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -48,13 +49,16 @@ void Camera::Initialize() {
   upper_left_pixel_location_ =
       viewport_upper_left + 0.5 * (pixel_delta_u_ + pixel_delta_v_);
 
-  Float defocus_radius = settings_.focus_distance *
-                         tan(DegreesToRadians(settings_.defocus_angle / 2));
+  const Float defocus_radius =
+      settings_.focus_distance *
+      tan(DegreesToRadians(settings_.defocus_angle / 2));
   defocus_disk_u_ = u_ * defocus_radius;
   defocus_disk_v_ = v_ * defocus_radius;
 }
 
 void Camera::Render(std::stop_token token, const Hittable& world) {
+  std::chrono::time_point start_time = std::chrono::system_clock::now();
+
   for (int j = 0; j < settings_.image_height && !token.stop_requested(); j++) {
     progress_ = j / static_cast<Float>(settings_.image_height - 1);
 
@@ -72,6 +76,11 @@ void Camera::Render(std::stop_token token, const Hittable& world) {
       }
     }
   }
+
+  std::chrono::time_point end_time = std::chrono::system_clock::now();
+  render_time_ = std::chrono::duration_cast<std::chrono::milliseconds>(
+                     end_time - start_time)
+                     .count();
 
   is_rendering_ = false;
 }

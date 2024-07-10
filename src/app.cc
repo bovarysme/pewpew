@@ -89,7 +89,7 @@ void App::Run() {
       camera_.set_is_rendering(true);
       camera_.Initialize();
       rendering_thread_ = std::jthread{
-          std::bind_front(&Camera::Render, &camera_), std::ref(world_)};
+          std::bind_front(&Camera::Render, &camera_), std::cref(world_)};
     } else if (rendering_state_ == RenderingState::kRequestStop &&
                !rendering_thread_.get_stop_source().stop_requested()) {
       rendering_thread_.get_stop_source().request_stop();
@@ -250,6 +250,7 @@ SettingsUpdateType App::ShowDebugWindow() {
 
   ImGui::SeparatorText("Render status");
 
+  ImGui::Text("Render time: %.fms", camera_.render_time());
   ImGui::Text("State: %s", RenderingStateToString(rendering_state_).c_str());
 
   has_settings_update |=
