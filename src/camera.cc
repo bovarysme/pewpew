@@ -17,6 +17,8 @@
 #include "vec3.h"
 
 void Camera::Initialize() {
+  scanlines_rendered_ = 0;
+
   {
     const std::lock_guard<std::mutex> guard(pixel_data_mutex_);
     pixel_data_.reserve(settings_.image_width * settings_.image_height *
@@ -59,8 +61,15 @@ void Camera::Initialize() {
 void Camera::Render(std::stop_token token, const Hittable& world) {
   std::chrono::time_point start_time = std::chrono::system_clock::now();
 
-  for (int j = 0; j < settings_.image_height && !token.stop_requested(); j++) {
-    progress_ = j / static_cast<Float>(settings_.image_height - 1);
+  // clang-format off
+  #pragma omp parallel for
+  // clang-format on
+  for (int j = 0; j < settings_.image_height; j++) {
+    if (token.stop_requested()) {
+      continue;
+    }
+
+    scanlines_rendered_++;
 
     for (int i = 0; i < settings_.image_width; i++) {
       Color pixel_color{};
@@ -83,6 +92,10 @@ void Camera::Render(std::stop_token token, const Hittable& world) {
                      .count();
 
   is_rendering_ = false;
+}
+
+Float Camera::Progress() const {
+  return scanlines_rendered_ / static_cast<Float>(settings_.image_height - 1);
 }
 
 void Camera::CopyTo(int* buffer) {

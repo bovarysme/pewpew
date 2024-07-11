@@ -256,7 +256,7 @@ SettingsUpdateType App::ShowDebugWindow() {
   has_settings_update |=
       ImGui::Checkbox("Rendering", &settings_.enable_rendering);
 
-  ImGui::ProgressBar(camera_.progress(), ImVec2(0.0f, 0.0f));
+  ImGui::ProgressBar(camera_.Progress(), ImVec2(0.0f, 0.0f));
   ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
   ImGui::Text("Frame progress");
 

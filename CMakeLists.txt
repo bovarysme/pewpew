@@ -38,5 +38,9 @@ target_include_directories(imgui PUBLIC
 target_link_libraries(imgui ${SDL2_LIBRARIES})
 target_link_libraries(pewpew imgui)
 
+# OpenMP
+find_package(OpenMP REQUIRED)
+target_link_libraries(pewpew OpenMP::OpenMP_CXX)
+
 # PCG
 target_include_directories(pewpew PRIVATE third_party/pcg-cpp/include)

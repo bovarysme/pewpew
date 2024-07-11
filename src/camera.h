@@ -31,19 +31,19 @@ class Camera {
   Camera(CameraSettings settings)
       : settings_{settings},
         is_rendering_{false},
-        progress_{0.0},
+        scanlines_rendered_{0},
         render_time_{0.0},
         num_color_components_{3} {}
 
   void Initialize();
   void Render(std::stop_token token, const Hittable& world);
+  Float Progress() const;
   void CopyTo(int* buffer);
 
   const CameraSettings& settings() const { return settings_; }
   void set_settings(const CameraSettings& settings) { settings_ = settings; }
   bool is_rendering() const { return is_rendering_; }
   void set_is_rendering(bool is_rendering) { is_rendering_ = is_rendering; }
-  Float progress() const { return progress_; }
   double render_time() const { return render_time_; }
 
  private:
@@ -54,7 +54,7 @@ class Camera {
 
   CameraSettings settings_;
   std::atomic<bool> is_rendering_;
-  Float progress_;
+  std::atomic<int> scanlines_rendered_;
   double render_time_;
   int num_color_components_;
   std::vector<int> pixel_data_;
