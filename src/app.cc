@@ -3,12 +3,14 @@
 #include <SDL2/SDL.h>
 
 #include <algorithm>
+#include <format>
 #include <functional>
 #include <iostream>
 #include <limits>
 #include <string>
 #include <thread>
 
+#include "app_settings.h"
 #include "camera.h"
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
@@ -20,7 +22,7 @@ CameraSettings ToCameraSettings(const AppSettings& settings) {
           static_cast<int>(settings.window_width * settings.image_scale_factor),
       .image_height = static_cast<int>(settings.window_height *
                                        settings.image_scale_factor),
-      .samples_per_pixel = 1 << settings.samples_per_pixel_log2,
+      .samples_per_pixel_log2 = settings.samples_per_pixel_log2,
       .max_depth = 1 << settings.max_depth_log2,
       .fov = settings.fov,
       .look_from = Point3{settings.look_from},
@@ -85,9 +87,8 @@ void App::Run() {
     NextState();
 
     if (rendering_state_ == RenderingState::kStartRendering &&
-        !camera_.is_rendering()) {
-      camera_.set_is_rendering(true);
-      camera_.Initialize();
+        settings_.enable_rendering && !camera_.is_rendering()) {
+      camera_.InitializePhase();
       rendering_thread_ = std::jthread{
           std::bind_front(&Camera::Render, &camera_), std::cref(world_)};
     } else if (rendering_state_ == RenderingState::kRequestStop &&
@@ -95,7 +96,7 @@ void App::Run() {
       rendering_thread_.get_stop_source().request_stop();
     } else if (rendering_state_ == RenderingState::kUpdateSettings) {
       camera_.set_settings(ToCameraSettings(settings_));
-      camera_.Initialize();
+      camera_.Initialize(settings_update_type_);
 
       if (settings_update_type_ ==
           SettingsUpdateType::kUpdateTextureAndSettings) {
@@ -118,6 +119,8 @@ void App::Run() {
 }
 
 bool App::Initialize() {
+  camera_.Initialize(SettingsUpdateType::kUpdateTextureAndSettings);
+
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     std::cerr << "Error calling SDL_Init: " << SDL_GetError() << std::endl;
     return false;
@@ -178,6 +181,8 @@ void App::NextState() {
     case RenderingState::kRendering:
       if (settings_update_requested_) {
         rendering_state_ = RenderingState::kRequestStop;
+      } else if (camera_.done_rendering()) {
+        rendering_state_ = RenderingState::kIdle;
       } else if (camera_.is_rendering()) {
         rendering_state_ = RenderingState::kRendering;
       } else {
@@ -250,15 +255,27 @@ SettingsUpdateType App::ShowDebugWindow() {
 
   ImGui::SeparatorText("Render status");
 
-  ImGui::Text("Render time: %.fms", camera_.render_time());
   ImGui::Text("State: %s", RenderingStateToString(rendering_state_).c_str());
 
   has_settings_update |=
       ImGui::Checkbox("Rendering", &settings_.enable_rendering);
 
+  ImGui::Text("Global render time: %.fms", camera_.global_render_time());
+  ImGui::Text("Phase render time: %.fms", camera_.phase_render_time());
+  ImGui::Text("Phase samples per pixel: %d",
+              camera_.current_phase_samples_per_pixel());
+
+  int current_phase = camera_.current_phase();
+  int last_phase = camera_.last_phase();
+  float global_progress = current_phase / static_cast<float>(last_phase);
+  std::string overlay = std::format("{}/{}", current_phase, last_phase);
+  ImGui::ProgressBar(global_progress, ImVec2(0.0f, 0.0f), overlay.c_str());
+  ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+  ImGui::Text("Global progress");
+
   ImGui::ProgressBar(camera_.Progress(), ImVec2(0.0f, 0.0f));
   ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
-  ImGui::Text("Frame progress");
+  ImGui::Text("Phase progress");
 
   ImGui::SeparatorText("Camera settings");
 

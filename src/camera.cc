@@ -8,6 +8,7 @@
 #include <optional>
 #include <stop_token>
 
+#include "app_settings.h"
 #include "color.h"
 #include "float.h"
 #include "hittable.h"
@@ -16,16 +17,27 @@
 #include "utils.h"
 #include "vec3.h"
 
-void Camera::Initialize() {
-  scanlines_rendered_ = 0;
-
-  {
-    const std::lock_guard<std::mutex> guard(pixel_data_mutex_);
-    pixel_data_.reserve(settings_.image_width * settings_.image_height *
-                        num_color_components_);
+void Camera::Initialize(SettingsUpdateType type) {
+  const int data_size =
+      settings_.image_width * settings_.image_height * num_color_components_;
+  pixel_data_ = std::vector<Float>(data_size, 0.0);
+  if (type == SettingsUpdateType::kUpdateTextureAndSettings) {
+    const std::lock_guard<std::mutex> guard(image_data_mutex_);
+    image_data_ = std::vector<uint8_t>(data_size, 0);
   }
 
-  pixel_samples_scale_ = 1.0 / settings_.samples_per_pixel;
+  is_rendering_ = false;
+  done_rendering_ = false;
+
+  current_phase_ = 0;
+  last_phase_ = settings_.samples_per_pixel_log2 + 1;
+  current_phase_samples_per_pixel_ = 0;
+  accumulated_samples_per_pixel_ = 0;
+  pixel_samples_scale_ = 0;
+
+  global_render_time_ = 0.0;
+  phase_render_time_ = 0.0;
+  scanlines_rendered_ = 0;
 
   center_ = settings_.look_from;
 
@@ -58,14 +70,30 @@ void Camera::Initialize() {
   defocus_disk_v_ = v_ * defocus_radius;
 }
 
+void Camera::InitializePhase() {
+  is_rendering_ = true;
+
+  current_phase_++;
+  // Accumulated samples per pixel should double for each phase:
+  // 1 + 1 + 2 + 4...
+  current_phase_samples_per_pixel_ =
+      current_phase_ == 1 ? 1 : 1 << (current_phase_ - 2);
+  accumulated_samples_per_pixel_ += current_phase_samples_per_pixel_;
+  pixel_samples_scale_ = 1.0 / accumulated_samples_per_pixel_;
+
+  scanlines_rendered_ = 0;
+}
+
 void Camera::Render(std::stop_token token, const Hittable& world) {
-  std::chrono::time_point start_time = std::chrono::system_clock::now();
+  std::chrono::time_point phase_start_time = std::chrono::system_clock::now();
 
   // clang-format off
   #pragma omp parallel for
   // clang-format on
   for (int j = 0; j < settings_.image_height; j++) {
-    if (token.stop_requested()) {
+    // Prevent render invalidation during the first phase (1 sample per pixel).
+    // This increases the frequency of image updates when changing app settings.
+    if (token.stop_requested() && current_phase_ > 1) {
       continue;
     }
 
@@ -73,25 +101,52 @@ void Camera::Render(std::stop_token token, const Hittable& world) {
 
     for (int i = 0; i < settings_.image_width; i++) {
       Color pixel_color{};
-      for (int sample = 0; sample < settings_.samples_per_pixel; sample++) {
+      for (int sample = 0; sample < current_phase_samples_per_pixel_;
+           sample++) {
         const Ray ray = GetRay(i, j);
         pixel_color += RayColor(ray, settings_.max_depth, world);
       }
 
       const int index = (j * settings_.image_width + i) * num_color_components_;
-      {
-        const std::lock_guard<std::mutex> guard(pixel_data_mutex_);
-        StoreColor(pixel_data_, index, pixel_samples_scale_ * pixel_color);
-      }
+      pixel_data_[index] += pixel_color.x();
+      pixel_data_[index + 1] += pixel_color.y();
+      pixel_data_[index + 2] += pixel_color.z();
     }
   }
 
-  std::chrono::time_point end_time = std::chrono::system_clock::now();
-  render_time_ = std::chrono::duration_cast<std::chrono::milliseconds>(
-                     end_time - start_time)
-                     .count();
+  bool is_render_invalidated = token.stop_requested() && current_phase_ > 1;
+  if (!is_render_invalidated) {
+    StoreImage();
+  }
 
+  std::chrono::time_point phase_end_time = std::chrono::system_clock::now();
+  phase_render_time_ = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           phase_end_time - phase_start_time)
+                           .count();
+  global_render_time_ += phase_render_time_;
+
+  if (current_phase_ >= last_phase_) {
+    done_rendering_ = true;
+  }
+
+  // This must be unset last to prevent a race condition where the rendering
+  // state would be updated before `done_rendering_` could be set.
   is_rendering_ = false;
+}
+
+void Camera::StoreImage() {
+  const std::lock_guard<std::mutex> guard(image_data_mutex_);
+
+  for (int j = 0; j < settings_.image_height; j++) {
+    for (int i = 0; i < settings_.image_width; i++) {
+      for (int k = 0; k < num_color_components_; k++) {
+        const int index =
+            (j * settings_.image_width + i) * num_color_components_ + k;
+        image_data_[index] =
+            TransformColor(pixel_data_[index] * pixel_samples_scale_);
+      }
+    }
+  }
 }
 
 Float Camera::Progress() const {
@@ -99,14 +154,14 @@ Float Camera::Progress() const {
 }
 
 void Camera::CopyTo(int* buffer) {
-  const std::lock_guard<std::mutex> guard(pixel_data_mutex_);
+  const std::lock_guard<std::mutex> guard(image_data_mutex_);
 
   for (int j = 0; j < settings_.image_height; j++) {
     for (int i = 0; i < settings_.image_width; i++) {
       int src_index = (j * settings_.image_width + i) * num_color_components_;
-      uint8_t r = static_cast<uint8_t>(pixel_data_[src_index]);
-      uint8_t g = static_cast<uint8_t>(pixel_data_[src_index + 1]);
-      uint8_t b = static_cast<uint8_t>(pixel_data_[src_index + 2]);
+      uint8_t r = image_data_[src_index];
+      uint8_t g = image_data_[src_index + 1];
+      uint8_t b = image_data_[src_index + 2];
 
       int dest_index = j * settings_.image_width + i;
       buffer[dest_index] = (r << 16) | (g << 8) | b;
@@ -161,7 +216,7 @@ Color Camera::RayColor(const Ray& ray, int depth, const Hittable& world) const {
 }
 
 void Camera::WriteImage() {
-  const std::lock_guard<std::mutex> guard(pixel_data_mutex_);
+  const std::lock_guard<std::mutex> guard(image_data_mutex_);
 
   std::cout << "P3\n"
             << settings_.image_width << ' ' << settings_.image_height
@@ -170,8 +225,8 @@ void Camera::WriteImage() {
   for (int j = 0; j < settings_.image_height; j++) {
     for (int i = 0; i < settings_.image_width; i++) {
       const int index = (j * settings_.image_width + i) * num_color_components_;
-      std::cout << pixel_data_[index] << ' ' << pixel_data_[index + 1] << ' '
-                << pixel_data_[index + 2] << '\n';
+      std::cout << image_data_[index] << ' ' << image_data_[index + 1] << ' '
+                << image_data_[index + 2] << '\n';
     }
   }
 }

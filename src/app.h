@@ -6,6 +6,7 @@
 #include <string>
 #include <thread>
 
+#include "app_settings.h"
 #include "camera.h"
 #include "hittable_list.h"
 #include "imgui.h"
@@ -41,12 +42,6 @@ enum class RenderingState {
 };
 
 std::string RenderingStateToString(RenderingState state);
-
-enum class SettingsUpdateType {
-  kNoUpdates,
-  kUpdateSettings,
-  kUpdateTextureAndSettings,
-};
 
 class App {
  public:

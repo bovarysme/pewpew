@@ -2,8 +2,6 @@
 ## Features
 
 - Handle window resizing events.
-- Implement multithreading for the rendering.
-- Implement progressive rendering.
 - Implement Book II features (e.g. BVH, quads/trigs, instances).
 - Implement obj loading.
 - Use keyboard and mouse to move the camera around.
