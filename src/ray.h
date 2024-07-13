@@ -8,9 +8,9 @@ class Ray {
  public:
   Ray() {}
   Ray(const Point3& origin, const Vec3& direction)
-      : origin_(origin), direction_(direction) {}
+      : origin_{origin}, direction_{direction} {}
 
-  const Vec3& origin() const { return origin_; }
+  const Point3& origin() const { return origin_; }
   const Vec3& direction() const { return direction_; }
 
   Point3 at(Float t) const { return origin_ + t * direction_; }
