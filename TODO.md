@@ -9,5 +9,5 @@
 ## Cleanups
 
 - Use curly braces for constructor initializer lists.
-- Use raw pointers for geometry.
 - Move materials to their own folder.
+- Make Floats floats.
