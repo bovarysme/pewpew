@@ -12,8 +12,8 @@ inline Float DegreesToRadians(Float degrees) {
 }
 
 inline Float RandomFloat() {
-  static pcg_extras::seed_seq_from<std::random_device> seed_source;
-  static pcg32 rng(seed_source);
+  thread_local pcg_extras::seed_seq_from<std::random_device> seed_source;
+  thread_local pcg32 rng(seed_source);
   return rng() / (rng.max() + 1.0);
 }
 
