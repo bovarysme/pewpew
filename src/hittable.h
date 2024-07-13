@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 
+#include "aabb.h"
 #include "float.h"
 #include "material.h"
 #include "ray.h"
@@ -40,6 +41,8 @@ class Hittable {
 
   virtual std::optional<HitRecord> Hit(const Ray& ray, Float tmin,
                                        Float tmax) const = 0;
+
+  virtual AABB BoundingBox() const = 0;
 };
 
 #endif  // PEWPEW_HITTABLE_H_
