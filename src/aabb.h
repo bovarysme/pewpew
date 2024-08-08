@@ -14,6 +14,8 @@ class AABB {
 
   bool Hit(const Ray& ray, float tmin, float tmax) const;
 
+  Point3 min() const { return min_; }
+
  private:
   Point3 min_;
   Point3 max_;

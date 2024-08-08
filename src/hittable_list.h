@@ -21,6 +21,8 @@ class HittableList : public Hittable {
     bounding_box_ = AABB{bounding_box_, object->BoundingBox()};
   }
 
+  std::vector<Hittable*> objects() const { return objects_; }
+
  private:
   std::vector<Hittable*> objects_;
   AABB bounding_box_;

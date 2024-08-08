@@ -88,7 +88,7 @@ void Camera::Render(std::stop_token token, const Hittable& world) {
   std::chrono::time_point phase_start_time = std::chrono::system_clock::now();
 
   // clang-format off
-  #pragma omp parallel for
+  #pragma omp parallel for num_threads(6)
   // clang-format on
   for (int j = 0; j < settings_.image_height; j++) {
     // Prevent render invalidation during the first phase (1 sample per pixel).
